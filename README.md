@@ -92,35 +92,7 @@ podium/
 │   │   └── index.css          # Main stylesheet with CSS variables
 │   └── App.js                 # Main application component
 │
-├── backend/podium/             # Backend source code
-│   └── src/
-│       ├── config/            # Configuration
-│       │   ├── db.js         # MySQL connection
-│       │   ├── schema.sql    # Database schema
-│       │   └── socket.js     # WebSocket configuration
-│       ├── controllers/       # Route controllers
-│       │   ├── authController.js
-│       │   ├── teamController.js
-│       │   ├── memberController.js
-│       │   ├── taskController.js
-│       │   └── leaderboardController.js
-│       ├── services/          # Business logic
-│       │   ├── authService.js
-│       │   ├── teamService.js
-│       │   ├── memberService.js
-│       │   ├── taskService.js
-│       │   ├── scoringService.js
-│       │   └── leaderboardService.js
-│       ├── middleware/        # Express middleware
-│       │   └── authMiddleware.js  # JWT verification
-│       ├── routes/            # API routes
-│       │   ├── authRoutes.js
-│       │   ├── teamRoutes.js
-│       │   ├── memberRoutes.js
-│       │   ├── taskRoutes.js
-│       │   └── leaderboardRoutes.js
-│       └── app.js            # Express app configuration
-│
+├
 └── sources/                   # Documentation
     ├── README.md
     ├── FRONTEND_API_DOCUMENTATION.md
@@ -158,48 +130,6 @@ podium/
    npm run build
    ```
 
-### Backend Setup
-
-1. **Navigate to Backend Directory**
-   ```bash
-   cd backend/podium
-   ```
-
-2. **Install Dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Configure Environment**
-   Create a `.env` file in `backend/podium/`:
-   ```env
-   PORT=5000
-   NODE_ENV=development
-   
-   # Database Configuration
-   DB_HOST=localhost
-   DB_USER=root
-   DB_PASSWORD=your_password
-   DB_NAME=gamification_db
-   
-   # JWT Secret (use a strong random string in production)
-   JWT_SECRET=your_jwt_secret_key
-   
-   # Uploads
-   UPLOAD_PATH=src/uploads
-   ```
-
-4. **Initialize Database**
-   ```bash
-   npm run db:init
-   ```
-   This will create the database and all required tables.
-
-5. **Run Development Server**
-   ```bash
-   npm run dev
-   ```
-   The backend will be available at `http://localhost:5000`
 
 ## 🌐 Production Deployment
 
@@ -295,7 +225,7 @@ The backend is deployed on Render.com at: https://podium-7y67.onrender.com
 - Automatic score updates when tasks are validated
 - Visual feedback for all user actions
 
-## 🐛 Common Issues & Solutions
+##  Common Issues & Solutions
 
 ### Mixed Content Error
 **Error:** "This request has been blocked; the content must be served over HTTPS"
@@ -341,17 +271,6 @@ module.exports = { register, login, getAllUsers };
 - Members → Tasks (one-to-many, optional assignment)
 
 ## 🧪 Testing
-
-### Backend Tests
-Test scripts are available in `backend/podium/scripts/`:
-- `test_validation.js` - Tests task validation flow
-- `test_team_deletion.js` - Tests team deletion with cascading
-
-Run tests:
-```bash
-cd backend/podium
-node scripts/test_validation.js
-```
 
 ### Manual Testing
 Use the provided Postman collection in `sources/` directory for comprehensive API testing.
