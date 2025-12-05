@@ -3,9 +3,11 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Navigation from './components/shared/Navigation';
 import Dashboard from './components/Dashboard/Dashboard';
 import Login from './components/Auth/Login';
-import Register from './components/Auth/Register';
+import CreateUser from './components/Auth/CreateUser';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
+import AdminRoute from './components/Auth/AdminRoute';
 import { authService } from './api/apiService';
+import { ThemeProvider } from './context/ThemeContext';
 import './styles/index.css';
 
 import Leaderboard from './components/Leaderboard/Leaderboard';
@@ -42,20 +44,29 @@ function App() {
     };
 
     return (
-        <Router>
-            <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route
-                    path="/*"
-                    element={
-                        <ProtectedRoute>
-                            <MainApp />
-                        </ProtectedRoute>
-                    }
-                />
-            </Routes>
-        </Router>
+        <ThemeProvider>
+            <Router>
+                <Routes>
+                    <Route path="/login" element={<Login />} />
+                    <Route
+                        path="/create-user"
+                        element={
+                            <AdminRoute>
+                                <CreateUser />
+                            </AdminRoute>
+                        }
+                    />
+                    <Route
+                        path="/*"
+                        element={
+                            <ProtectedRoute>
+                                <MainApp />
+                            </ProtectedRoute>
+                        }
+                    />
+                </Routes>
+            </Router>
+        </ThemeProvider>
     );
 }
 

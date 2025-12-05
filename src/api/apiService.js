@@ -56,6 +56,12 @@ export const authService = {
     // Check if authenticated
     isAuthenticated: () => {
         return !!localStorage.getItem('authToken');
+    },
+
+    // Get all users
+    getAllUsers: async () => {
+        const response = await api.get(ENDPOINTS.AUTH.USERS);
+        return response.data;
     }
 };
 

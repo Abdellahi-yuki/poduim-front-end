@@ -88,7 +88,8 @@ const Leaderboard = () => {
 
                 <div style={{
                     display: 'flex',
-                    background: 'white',
+                    background: 'var(--color-gray-50)',
+                    border: '1px solid var(--color-gray-200)',
                     padding: '4px',
                     borderRadius: 'var(--radius-lg)',
                     boxShadow: 'var(--shadow-sm)'

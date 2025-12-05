@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { authService } from '../../api/apiService';
 import '../../styles/index.css';
 
-const Register = () => {
+const CreateUser = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         email: '',
@@ -11,6 +11,7 @@ const Register = () => {
         role: 'member'
     });
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
@@ -19,18 +20,21 @@ const Register = () => {
             [e.target.name]: e.target.value
         });
         setError('');
+        setSuccess('');
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setSuccess('');
         setLoading(true);
 
         try {
             await authService.register(formData.email, formData.password, formData.role);
-            navigate('/');
+            setSuccess('Utilisateur créé avec succès !');
+            setFormData({ email: '', password: '', role: 'member' });
         } catch (err) {
-            setError(err.message || 'Erreur lors de l\'inscription');
+            setError(err.message || 'Erreur lors de la création de l\'utilisateur');
         } finally {
             setLoading(false);
         }
@@ -42,17 +46,17 @@ const Register = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: 'var(--color-gray-100)',
             padding: 'var(--spacing-md)'
         }}>
-            <div className="card" style={{ maxWidth: '400px', width: '100%' }}>
-                <div style={{ textAlign: 'center', marginBottom: 'var(--spacing-xl)' }}>
-                    <h1 style={{ fontSize: '2rem', fontWeight: '700', color: 'var(--color-gray-900)', marginBottom: 'var(--spacing-sm)' }}>
-                        Podium
+            <div className="card" style={{ maxWidth: '500px', width: '100%' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-xl)' }}>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--color-gray-900)', margin: 0 }}>
+                        Créer un utilisateur
                     </h1>
-                    <p style={{ color: 'var(--color-gray-600)' }}>
-                        Créer un nouveau compte
-                    </p>
+                    <button onClick={() => navigate('/')} className="btn btn-secondary">
+                        Retour
+                    </button>
                 </div>
 
                 {error && (
@@ -68,6 +72,19 @@ const Register = () => {
                     </div>
                 )}
 
+                {success && (
+                    <div style={{
+                        padding: 'var(--spacing-md)',
+                        background: 'rgba(16, 185, 129, 0.1)',
+                        color: 'var(--color-success)',
+                        borderRadius: 'var(--radius-md)',
+                        marginBottom: 'var(--spacing-lg)',
+                        fontSize: '0.875rem'
+                    }}>
+                        {success}
+                    </div>
+                )}
+
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label htmlFor="email" className="form-label">Email</label>
@@ -79,7 +96,7 @@ const Register = () => {
                             value={formData.email}
                             onChange={handleChange}
                             required
-                            placeholder="vous@exemple.com"
+                            placeholder="utilisateur@exemple.com"
                         />
                     </div>
 
@@ -98,36 +115,32 @@ const Register = () => {
                         />
                     </div>
 
+                    <div className="form-group">
+                        <label htmlFor="role" className="form-label">Rôle</label>
+                        <select
+                            id="role"
+                            name="role"
+                            className="form-select"
+                            value={formData.role}
+                            onChange={handleChange}
+                        >
+                            <option value="member">Membre</option>
+                            <option value="admin">Administrateur</option>
+                        </select>
+                    </div>
+
                     <button
                         type="submit"
                         className="btn btn-primary"
                         disabled={loading}
                         style={{ width: '100%', marginTop: 'var(--spacing-md)' }}
                     >
-                        {loading ? 'Inscription...' : 'S\'inscrire'}
+                        {loading ? 'Création...' : 'Créer l\'utilisateur'}
                     </button>
                 </form>
-
-                <div style={{ marginTop: 'var(--spacing-lg)', textAlign: 'center', fontSize: '0.875rem', color: 'var(--color-gray-600)' }}>
-                    <p>
-                        Déjà un compte ?{' '}
-                        <button
-                            onClick={() => navigate('/login')}
-                            style={{
-                                background: 'none',
-                                border: 'none',
-                                color: 'var(--color-primary)',
-                                cursor: 'pointer',
-                                textDecoration: 'underline'
-                            }}
-                        >
-                            Se connecter
-                        </button>
-                    </p>
-                </div>
             </div>
         </div>
     );
 };
 
-export default Register;
+export default CreateUser;

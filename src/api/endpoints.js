@@ -1,13 +1,14 @@
 // API Endpoints Configuration
 // Easy to update when migrating to real API
 
-export const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+export const BASE_URL = process.env.REACT_APP_API_URL || 'http://podium-7y67.onrender.com';
 
 export const ENDPOINTS = {
     // Authentication
     AUTH: {
+        LOGIN: '/api/auth/login',
         REGISTER: '/api/auth/register',
-        LOGIN: '/api/auth/login'
+        USERS: '/api/auth/users'
     },
 
     // Teams

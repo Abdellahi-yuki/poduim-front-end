@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Users, Trash2, Edit2, X, Check, UserPlus } from 'lucide-react';
+import { Plus, Users, Trash2, Edit2, X, Check, UserPlus, Type, Shield, Image, Palette } from 'lucide-react';
 import { teamsService, membersService, authService } from '../../api/apiService';
 import LoadingSpinner from '../shared/LoadingSpinner';
+import ConfirmationModal from '../shared/ConfirmationModal';
 import '../../styles/index.css';
 
 const TeamCard = ({ team, onDelete, onUpdate, onRefresh, isAdmin }) => {
@@ -87,7 +88,10 @@ const TeamCard = ({ team, onDelete, onUpdate, onRefresh, isAdmin }) => {
                                     <Edit2 size={16} />
                                 </button>
                                 <button
-                                    onClick={() => onDelete(team.id)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onDelete(team.id);
+                                    }}
                                     className="btn-icon"
                                     style={{ color: 'var(--color-error)' }}
                                 >
@@ -127,15 +131,24 @@ const TeamCard = ({ team, onDelete, onUpdate, onRefresh, isAdmin }) => {
                         </button>
                     )}
                 </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-xs)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
                     {members.map((member) => (
                         <div
                             key={member.id}
-                            title={`${member.name} (${member.role})`}
+                            className="member-card"
                             style={{
-                                position: 'relative',
-                                width: '2.5rem',
-                                height: '2.5rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 'var(--spacing-sm)',
+                                padding: 'var(--spacing-xs)',
+                                borderRadius: 'var(--radius-md)',
+                                background: 'var(--color-gray-50)',
+                                border: '1px solid var(--color-gray-100)'
+                            }}
+                        >
+                            <div style={{
+                                width: '2rem',
+                                height: '2rem',
                                 borderRadius: '50%',
                                 background: 'var(--color-gray-200)',
                                 display: 'flex',
@@ -144,52 +157,42 @@ const TeamCard = ({ team, onDelete, onUpdate, onRefresh, isAdmin }) => {
                                 fontSize: '0.875rem',
                                 fontWeight: '600',
                                 color: 'var(--color-gray-700)',
-                                border: '2px solid white',
-                                cursor: 'help',
-                                transition: 'transform var(--transition-base)'
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                        >
-                            {member.avatar_url ? (
-                                <img
-                                    src={member.avatar_url}
-                                    alt={member.name}
-                                    style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
-                                />
-                            ) : (
-                                member.name.charAt(0)
-                            )}
+                                flexShrink: 0,
+                                overflow: 'hidden'
+                            }}>
+                                {member.avatar_url ? (
+                                    <img
+                                        src={member.avatar_url}
+                                        alt={member.name}
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    />
+                                ) : (
+                                    member.name.charAt(0)
+                                )}
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontSize: '0.875rem', fontWeight: '500', color: 'var(--color-gray-900)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    {member.name}
+                                </div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--color-gray-500)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    {member.role === 'leader' && <Shield size={12} className="text-warning" style={{ color: 'var(--color-warning)' }} />}
+                                    {member.role === 'leader' ? 'Leader' : 'Membre'}
+                                </div>
+                            </div>
                             {isAdmin && (
                                 <button
                                     onClick={() => handleDeleteMember(member.id)}
-                                    style={{
-                                        position: 'absolute',
-                                        top: '-4px',
-                                        right: '-4px',
-                                        width: '16px',
-                                        height: '16px',
-                                        borderRadius: '50%',
-                                        background: 'var(--color-error)',
-                                        color: 'white',
-                                        border: 'none',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontSize: '10px',
-                                        opacity: 0,
-                                        transition: 'opacity var(--transition-base)'
-                                    }}
-                                    className="member-delete-btn"
+                                    className="btn-icon"
+                                    style={{ color: 'var(--color-error)', padding: '4px' }}
+                                    title="Retirer le membre"
                                 >
-                                    ×
+                                    <X size={14} />
                                 </button>
                             )}
                         </div>
                     ))}
                     {members.length === 0 && (
-                        <span style={{ fontSize: '0.875rem', color: 'var(--color-gray-400)', fontStyle: 'italic' }}>
+                        <span style={{ fontSize: '0.875rem', color: 'var(--color-gray-400)', fontStyle: 'italic', padding: 'var(--spacing-sm)' }}>
                             Aucun membre
                         </span>
                     )}
@@ -199,6 +202,7 @@ const TeamCard = ({ team, onDelete, onUpdate, onRefresh, isAdmin }) => {
             {showAddMember && (
                 <AddMemberModal
                     teamId={team.id}
+                    hasLeader={members.some(m => m.role === 'leader')}
                     onClose={() => setShowAddMember(false)}
                     onSuccess={() => {
                         fetchMembers();
@@ -210,7 +214,7 @@ const TeamCard = ({ team, onDelete, onUpdate, onRefresh, isAdmin }) => {
     );
 };
 
-const AddMemberModal = ({ teamId, onClose, onSuccess }) => {
+const AddMemberModal = ({ teamId, hasLeader, onClose, onSuccess }) => {
     const [formData, setFormData] = useState({
         name: '',
         role: 'member',
@@ -220,15 +224,15 @@ const AddMemberModal = ({ teamId, onClose, onSuccess }) => {
     const [selectedUserId, setSelectedUserId] = useState('');
 
     useEffect(() => {
-        // Fetch available users - for now we'll use a simple approach
-        // In a real app, you'd fetch users from an API
-        const mockUsers = [
-            { id: 5, email: 'member1@podium.com' },
-            { id: 6, email: 'member2@podium.com' },
-            { id: 7, email: 'member3@podium.com' },
-            { id: 8, email: 'member4@podium.com' }
-        ];
-        setUsers(mockUsers);
+        const fetchUsers = async () => {
+            try {
+                const data = await authService.getAllUsers();
+                setUsers(data);
+            } catch (error) {
+                console.error('Error fetching users:', error);
+            }
+        };
+        fetchUsers();
     }, []);
 
     const handleSubmit = async (e) => {
@@ -249,75 +253,91 @@ const AddMemberModal = ({ teamId, onClose, onSuccess }) => {
     };
 
     return (
-        <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: 'var(--spacing-md)'
-        }} onClick={onClose}>
-            <div className="card" style={{ width: '100%', maxWidth: '450px', maxHeight: '90vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: 'var(--spacing-lg)', color: 'var(--color-gray-900)' }}>
-                    Ajouter un membre
-                </h2>
-                <form onSubmit={handleSubmit}>
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content" style={{ maxWidth: '500px' }} onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h2 className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+                        <UserPlus size={24} className="text-primary" style={{ color: 'var(--color-primary)' }} />
+                        Ajouter un membre
+                    </h2>
+                    <button onClick={onClose} className="btn-icon">
+                        <X size={20} />
+                    </button>
+                </div>
+
+                <form onSubmit={handleSubmit} className="modal-body">
                     <div className="form-group">
-                        <label className="label">Utilisateur</label>
-                        <select
-                            className="input"
-                            value={selectedUserId}
-                            onChange={(e) => setSelectedUserId(e.target.value)}
-                            required
-                        >
-                            <option value="">Sélectionner un utilisateur</option>
-                            {users.map(user => (
-                                <option key={user.id} value={user.id}>{user.email}</option>
-                            ))}
-                        </select>
+                        <label className="form-label">Utilisateur</label>
+                        <div style={{ position: 'relative' }}>
+                            <Users size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-gray-400)' }} />
+                            <select
+                                className="form-select"
+                                style={{ paddingLeft: '40px' }}
+                                value={selectedUserId}
+                                onChange={(e) => setSelectedUserId(e.target.value)}
+                                required
+                            >
+                                <option value="">Sélectionner un utilisateur</option>
+                                {users.map(user => (
+                                    <option key={user.id} value={user.id}>{user.email}</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
+
                     <div className="form-group">
-                        <label className="label">Nom d'affichage</label>
-                        <input
-                            type="text"
-                            className="input"
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            required
-                            placeholder="Ex: Jean Dupont"
-                        />
+                        <label className="form-label">Nom d'affichage</label>
+                        <div style={{ position: 'relative' }}>
+                            <Type size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-gray-400)' }} />
+                            <input
+                                type="text"
+                                className="form-input"
+                                style={{ paddingLeft: '40px' }}
+                                value={formData.name}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                required
+                                placeholder="Ex: Jean Dupont"
+                            />
+                        </div>
                     </div>
+
                     <div className="form-group">
-                        <label className="label">Rôle dans l'équipe</label>
-                        <select
-                            className="input"
-                            value={formData.role}
-                            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                        >
-                            <option value="member">Membre</option>
-                            <option value="leader">Leader</option>
-                        </select>
+                        <label className="form-label">Rôle dans l'équipe</label>
+                        <div style={{ position: 'relative' }}>
+                            <Shield size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-gray-400)' }} />
+                            <select
+                                className="form-select"
+                                style={{ paddingLeft: '40px' }}
+                                value={formData.role}
+                                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                            >
+                                <option value="member">Membre</option>
+                                {!hasLeader && <option value="leader">Leader</option>}
+                            </select>
+                        </div>
                     </div>
+
                     <div className="form-group">
-                        <label className="label">URL de l'avatar (optionnel)</label>
-                        <input
-                            type="url"
-                            className="input"
-                            value={formData.avatar_url}
-                            onChange={(e) => setFormData({ ...formData, avatar_url: e.target.value })}
-                            placeholder="https://example.com/avatar.jpg"
-                        />
+                        <label className="form-label">URL de l'avatar (optionnel)</label>
+                        <div style={{ position: 'relative' }}>
+                            <Image size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-gray-400)' }} />
+                            <input
+                                type="url"
+                                className="form-input"
+                                style={{ paddingLeft: '40px' }}
+                                value={formData.avatar_url}
+                                onChange={(e) => setFormData({ ...formData, avatar_url: e.target.value })}
+                                placeholder="https://example.com/avatar.jpg"
+                            />
+                        </div>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)' }}>
+
+                    <div className="modal-footer">
                         <button type="button" onClick={onClose} className="btn btn-secondary">
                             Annuler
                         </button>
                         <button type="submit" className="btn btn-primary">
+                            <Plus size={18} />
                             Ajouter
                         </button>
                     </div>
@@ -337,54 +357,58 @@ const CreateTeamModal = ({ onClose, onCreate }) => {
     };
 
     return (
-        <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: 'var(--spacing-md)'
-        }} onClick={onClose}>
-            <div className="card" style={{ width: '100%', maxWidth: '450px' }} onClick={(e) => e.stopPropagation()}>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: 'var(--spacing-lg)', color: 'var(--color-gray-900)' }}>
-                    Nouvelle équipe
-                </h2>
-                <form onSubmit={handleSubmit}>
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content" style={{ maxWidth: '500px' }} onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h2 className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+                        <Users size={24} className="text-primary" style={{ color: 'var(--color-primary)' }} />
+                        Nouvelle équipe
+                    </h2>
+                    <button onClick={onClose} className="btn-icon">
+                        <X size={20} />
+                    </button>
+                </div>
+
+                <form onSubmit={handleSubmit} className="modal-body">
                     <div className="form-group">
-                        <label className="label">Nom de l'équipe</label>
-                        <input
-                            type="text"
-                            className="input"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                            placeholder="Ex: Les Vainqueurs"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label className="label">Couleur de l'équipe</label>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+                        <label className="form-label">Nom de l'équipe</label>
+                        <div style={{ position: 'relative' }}>
+                            <Type size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-gray-400)' }} />
                             <input
-                                type="color"
-                                value={color}
-                                onChange={(e) => setColor(e.target.value)}
-                                style={{
-                                    height: '48px',
-                                    width: '80px',
-                                    padding: '4px',
-                                    border: '2px solid var(--color-gray-200)',
-                                    borderRadius: 'var(--radius-md)',
-                                    cursor: 'pointer'
-                                }}
+                                type="text"
+                                className="form-input"
+                                style={{ paddingLeft: '40px' }}
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                required
+                                placeholder="Ex: Les Vainqueurs"
                             />
+                        </div>
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">Couleur de l'équipe</label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+                            <div style={{ position: 'relative', width: '80px', height: '48px' }}>
+                                <Palette size={18} style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-gray-500)', zIndex: 1, pointerEvents: 'none' }} />
+                                <input
+                                    type="color"
+                                    value={color}
+                                    onChange={(e) => setColor(e.target.value)}
+                                    style={{
+                                        height: '100%',
+                                        width: '100%',
+                                        padding: '4px 4px 4px 32px',
+                                        border: '1px solid var(--color-gray-300)',
+                                        borderRadius: 'var(--radius-md)',
+                                        cursor: 'pointer',
+                                        background: 'white'
+                                    }}
+                                />
+                            </div>
                             <div style={{ flex: 1 }}>
                                 <div style={{ fontSize: '0.875rem', color: 'var(--color-gray-600)', marginBottom: '4px' }}>
-                                    Couleur sélectionnée
+                                    Aperçu
                                 </div>
                                 <div style={{
                                     padding: 'var(--spacing-sm)',
@@ -393,18 +417,25 @@ const CreateTeamModal = ({ onClose, onCreate }) => {
                                     fontFamily: 'monospace',
                                     fontSize: '0.875rem',
                                     fontWeight: '600',
-                                    color: 'var(--color-gray-700)'
+                                    color: color,
+                                    border: '1px solid var(--color-gray-200)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 'var(--spacing-sm)'
                                 }}>
+                                    <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: color }}></div>
                                     {color}
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)' }}>
+
+                    <div className="modal-footer">
                         <button type="button" onClick={onClose} className="btn btn-secondary">
                             Annuler
                         </button>
                         <button type="submit" className="btn btn-primary">
+                            <Plus size={18} />
                             Créer l'équipe
                         </button>
                     </div>
@@ -418,6 +449,7 @@ const Teams = () => {
     const [teams, setTeams] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [deleteTeamId, setDeleteTeamId] = useState(null);
     const currentUser = authService.getCurrentUser();
     const isAdmin = currentUser?.role === 'admin';
 
@@ -447,15 +479,19 @@ const Teams = () => {
         }
     };
 
-    const handleDeleteTeam = async (id) => {
-        if (window.confirm('Êtes-vous sûr de vouloir supprimer cette équipe ?')) {
-            try {
-                await teamsService.delete(id);
-                await fetchTeams();
-            } catch (error) {
-                console.error('Error deleting team:', error);
-                alert('Erreur lors de la suppression de l\'équipe');
-            }
+    const handleDeleteTeam = (id) => {
+        setDeleteTeamId(id);
+    };
+
+    const confirmDeleteTeam = async () => {
+        if (!deleteTeamId) return;
+        try {
+            await teamsService.delete(deleteTeamId);
+            await fetchTeams();
+            setDeleteTeamId(null);
+        } catch (error) {
+            console.error('Error deleting team:', error);
+            alert('Erreur lors de la suppression de l\'équipe');
         }
     };
 
@@ -525,11 +561,21 @@ const Teams = () => {
                 />
             )}
 
+            <ConfirmationModal
+                isOpen={!!deleteTeamId}
+                onClose={() => setDeleteTeamId(null)}
+                onConfirm={confirmDeleteTeam}
+                title="Supprimer l'équipe"
+                message="Êtes-vous sûr de vouloir supprimer cette équipe ? Cette action est irréversible et supprimera tous les membres et tâches associés."
+                confirmLabel="Supprimer"
+                confirmColor="danger"
+            />
+
             <style>{`
                 .member-delete-btn {
                     opacity: 0 !important;
                 }
-                div:hover > .member-delete-btn {
+                .member-card:hover > .member-delete-btn {
                     opacity: 1 !important;
                 }
             `}</style>
