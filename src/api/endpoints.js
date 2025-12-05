@@ -1,7 +1,7 @@
 // API Endpoints Configuration
 // Easy to update when migrating to real API
 
-export const BASE_URL = process.env.REACT_APP_API_URL || 'http://podium-7y67.onrender.com';
+export const BASE_URL = process.env.REACT_APP_API_URL || 'https://podium-7y67.onrender.com';
 
 export const ENDPOINTS = {
     // Authentication
